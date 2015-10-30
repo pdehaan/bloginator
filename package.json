@@ -1,0 +1,21 @@
+{
+  "name": "bloginator",
+  "version": "0.0.1",
+  "description": "bloginator",
+  "author": "Kostas <kostas@hevnly.com>",
+  "license": "MIT",
+  "preferGlobal": true,
+  "bin": {
+    "watch": "bin/bloginate"
+  },
+  "engines": {
+    "node": "*"
+  },
+  "dependencies": {
+    "fs": "0.0.2",
+    "gm": "^1.21.1",
+    "meta-marked": "^0.3.4",
+    "path": "^0.12.7",
+    "underscore": "^1.8.3"
+  }
+}

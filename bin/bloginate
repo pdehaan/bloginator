@@ -1,0 +1,300 @@
+#!/usr/bin/env node
+
+/* ================================ *\
+|   _   _                  _         |
+|  | | | | _____   ___ __ | |_   _   |
+|  | |_| |/ _ \ \ / / '_ \| | | | |  |
+|  |  _  |  __/\ V /| | | | | |_| |  |
+|  |_| |_|\___| \_/ |_| |_|_|\__, |  |
+|   Bloginator               |___/   |
+|                                    |
+\* ================================ */
+// Libs
+var fs = require('fs');
+var path = require('path');
+var _ = require('underscore');
+var metaMarked = require('meta-marked');
+var gm = require('gm');
+var paginate = require('../lib/paginate');
+// Constants
+var contentDir = './source';
+var postsDir = path.join(contentDir, 'posts/');
+var imageDir = path.join(contentDir, 'images/');
+var buildDir = './build/';
+var MDRegEx = /.*\.md$/;
+var IMGRegEx = /\.(gif|jpg|jpeg|png)$/i;
+var coatOfArms = '\n================================\n _   _                  _\n| | | | _____   ___ __ | |_   _\n| |_| |/ _ \\ \\ / / \'_ \\| | | | |\n|  _  |  __/\\ V /| | | | | |_| |\n|_| |_|\\___| \\_/ |_| |_|_|\\__, |\n Bloginator               |___/\n\n================================\n';
+// ================================
+// Globals
+var posts = [];
+var tags = [];
+var categories = [];
+var editions = [];
+// ================================
+// Functions
+var titleToUrl = function(title) {
+    return title.toLowerCase().replace(/\s/g, '-');
+};
+
+var parseContents = function (contents) {
+    var parsedContents = metaMarked(contents);
+    return parsedContents;
+};
+
+var saveFile = function (fileName, content, targetPath) {
+    if (!fileName) { return false; }
+    var filePath = path.join(buildDir, (targetPath || ''), fileName);
+    fs.writeFile(filePath, content, function (err) {
+        if (err) return console.log(err);
+    });
+};
+
+var log = function(string) {
+    if (!string) { return false; }
+    process.stdout.write(string);
+};
+
+var parseFilesInDir = function (dir, filterPattern) {
+    if (!dir) { return false; }
+    var post = {};
+    var fileNames = [];
+    var content = '';
+    var parsedContent = {};
+    var slug = '';
+    fileNames = fs.readdirSync(dir);
+    fileNames = fileNames.filter(function(fileName) { return fileName.match(filterPattern); });
+    fileNames.forEach(function(fileName) {
+        // read post source
+        content = fs.readFileSync(dir + fileName, 'utf-8') || '';
+        // parse post
+        parsedContent = metaMarked(content);
+        slug = titleToUrl(parsedContent.meta.slug);
+        post = parsedContent.meta;
+        // post.slug = slug;
+        post.tags = _.uniq(parsedContent.meta.tags.split(', '));
+        post.content = parsedContent.html;
+        posts.push(post);
+    });
+    return posts;
+};
+
+var deleteFolderRecursive = function(dirPath) {
+    if (fs.existsSync(dirPath)) {
+        fs.readdirSync(dirPath).forEach(function(file, index) {
+            var curPath = path.join(dirPath, file);
+            if (fs.lstatSync(curPath).isDirectory()) {
+                // recurse
+                deleteFolderRecursive(curPath);
+            } else {
+                // delete file
+                fs.unlinkSync(curPath);
+            }
+        });
+        fs.rmdirSync(dirPath);
+    }
+};
+
+var cleanUp = function() {
+    log('cleaning build directory...');
+    deleteFolderRecursive(buildDir);
+    log('done\n');
+};
+
+var setupBuildDir = function() {
+    log('creating subdirectories...');
+    fs.mkdirSync(buildDir);
+    fs.mkdirSync(path.join(buildDir, 'images'));
+    ['tags', 'editions', 'pages', 'posts'].forEach(function(dirName){
+        fs.mkdirSync(path.join(buildDir, dirName));
+    });
+    log('done\n--\n');
+};
+
+var exportSinglePost = function(postData) {
+    log('exporting single post...');
+    var date;
+    var dateString = '';
+    var titleString = '';
+    var fileName = '';
+    date = new Date(postData.date);
+    dateString = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
+    titleString = postData.title.toLowerCase().replace(/\s/g, '-');
+    fileName = dateString + '-' + titleString;
+    saveFile(fileName + '.json', JSON.stringify(postData, null, 4), 'posts');
+    log('done\n');
+};
+
+var exportPostTags = function(postData) {
+    log('exporting post tags...');
+    var currentKey = {};
+    postData.tags
+    .forEach(function(tagName){
+        tagName = tagName.trim();
+        currentKey = _.find(tags, function (tag) {
+            return tag.name === tagName;
+        });
+        if (!currentKey) {
+            tags.push({
+                name: tagName,
+                postIds: [postData.slug]
+            });
+        } else if (!currentKey.postIds) {
+            currentKey.postIds = [postData.slug];
+        } else {
+            currentKey.postIds.push(postData.slug);
+        }
+    });
+    log('done\n');
+};
+
+var exportPostCategory = function(postData) {
+    log('exporting post category...');
+    var currentCategory = _.find(categories, function (category) {
+        return category.name === postData.category;
+    });
+    if (!currentCategory) {
+        categories.push({
+            name: postData.category,
+            postIds: [postData.slug]
+        });
+    } else if (!currentCategory.postIds) {
+        currentCategory.postIds = [postData.slug];
+    } else {
+        currentCategory.postIds.push(postData.slug);
+    }
+    log('done\n');
+};
+
+var exportPostEdition = function(postData) {
+    log('exporting post edition...');
+    var currentEdition = _.find(editions, function (edition) {
+        return (edition.name === postData.editionName || edition.number === postData.editionNumber);
+    });
+    if (!currentEdition) {
+        editions.push({
+            name: postData.editionName,
+            number: postData.editionNumber,
+            postIds: [postData.slug]
+        });
+    } else if (!currentEdition.postIds) {
+        currentEdition.postIds = [postData.slug];
+    } else {
+        currentEdition.postIds.push(postData.slug);
+    }
+    log('done\n');
+};
+
+var exportPostsByEdition = function() {
+    log('exporting edition posts...');
+    editions.forEach(function (edition) {
+        var editionPosts = [];
+        edition.postIds.forEach(function(postId){
+            var post = _.findWhere(posts, {slug: postId});
+            if (post) {
+                editionPosts.push(post);
+            }
+        });
+        saveFile('edition-' + edition.number + '.json', JSON.stringify(editionPosts, null, 4), 'editions')
+    });
+    log('done\n');
+};
+
+var exportPostsPaginated = function() {
+    log('exporting paginated posts...');
+    var pagesByDate = paginate({
+        items: posts
+    });
+    pagesByDate.forEach(function (page) {
+        saveFile('page-' + (page.pageNo || 0) + '.json', JSON.stringify(page.pageData, null, 4), 'pages');
+    });
+    log('done\n');
+};
+
+var saveCollections = function() {
+    log('saving collections...');
+    saveFile('tags.json', JSON.stringify(tags, null, 4));
+    saveFile('categories.json', JSON.stringify(categories, null, 4));
+    saveFile('editions.json', JSON.stringify(editions, null, 4));
+    log('done\n');
+};
+
+var processImages = function() {
+    log('processing images...');
+    var editions = [];
+    var postNames = [];
+    var imageFiles = [];
+    var tmpEditionPath = '';
+    var tmpPostPath = '';
+    var imageSourcePath = '';
+    var imageDestPath = '';
+    var processImage = function(sourcePath, destPath) {
+        if(!sourcePath || !destPath) {
+            console.log('Please set source/destination Path');
+            return false;
+        }
+        // export image no larger than 1600px and .3MB
+        gm(sourcePath)
+            .resize('1600', '1024', '>')
+            .write(destPath, function (err) {
+                if(err) console.log('image saving error ', err);
+            });
+    };
+    editions = fs.readdirSync(imageDir);
+    editions = editions.filter(function(edition) {
+        return fs.lstatSync(path.join(imageDir, edition)).isDirectory();
+    });
+    // for all editions
+    editions.forEach(function (edition) {
+        tmpEditionPath = path.join(imageDir, edition, '/');
+        fs.mkdirSync(path.join(buildDir, 'images', edition));
+        postNames = fs.readdirSync(tmpEditionPath);
+        postNames = postNames.filter(function (postName) {
+            tmpPostPath = path.join(imageDir, edition, postName);
+            return fs.lstatSync(tmpPostPath).isDirectory();
+        });
+        // for all posts
+        postNames.forEach(function (postName) {
+            tmpPostPath = '';
+            tmpPostPath = path.join(imageDir, edition, postName);
+            fs.mkdirSync(path.join(buildDir, 'images', edition, postName));
+            imageFiles = fs.readdirSync(tmpPostPath);
+            imageFiles = imageFiles.filter(function(imageFile) {
+                return imageFile.match(IMGRegEx);
+            });
+            // for all images
+            imageFiles.forEach(function (imageFile) {
+                imageSourcePath = path.join(tmpPostPath, imageFile);
+                // EXPORT DIR should be "build/images/editionNumber/post-name/"
+                imageDestPath = path.join(buildDir, 'images', edition, postName, imageFile);
+                processImage(imageSourcePath, imageDestPath);
+            });
+        });
+    });
+    log('done\n--\n');
+};
+// ================================
+// executing
+log(coatOfArms + '\n');
+cleanUp();
+setupBuildDir();
+processImages();
+var posts = parseFilesInDir(postsDir, MDRegEx);
+posts.forEach(function(post){
+    exportSinglePost(post);
+    exportPostTags(post);
+    exportPostCategory(post);
+    exportPostEdition(post);
+    log('--\n');
+});
+log('--------------------------------\n');
+exportPostsPaginated();
+exportPostsByEdition();
+saveCollections();
+log('================================\n');
+log('blogination completed!\n');
+log('================================\n');
+log('Now serve your static files by:\n');
+log('cd ./build; http-server --cors -p 8081;\n');
+log('================================\n');
+// ================================
+
