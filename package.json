@@ -6,7 +6,7 @@
   "license": "MIT",
   "preferGlobal": true,
   "bin": {
-    "watch": "bin/bloginate"
+    "bloginate": "bin/bloginate"
   },
   "engines": {
     "node": "*"

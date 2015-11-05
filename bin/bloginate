@@ -104,7 +104,7 @@ var setupBuildDir = function() {
     log('creating subdirectories...');
     fs.mkdirSync(buildDir);
     fs.mkdirSync(path.join(buildDir, 'images'));
-    ['tags', 'editions', 'pages', 'posts'].forEach(function(dirName){
+    ['tags', 'editions', 'categories', 'pages', 'posts'].forEach(function(dirName){
         fs.mkdirSync(path.join(buildDir, dirName));
     });
     log('done\n--\n');
@@ -116,10 +116,12 @@ var exportSinglePost = function(postData) {
     var dateString = '';
     var titleString = '';
     var fileName = '';
+    var editionString = '';
     date = new Date(postData.date);
     dateString = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
+    editionString = postData.editionName.toLowerCase().replace(/\s/g, '-');
     titleString = postData.title.toLowerCase().replace(/\s/g, '-');
-    fileName = dateString + '-' + titleString;
+    fileName = editionString + '-' + postData.slug;
     saveFile(fileName + '.json', JSON.stringify(postData, null, 4), 'posts');
     log('done\n');
 };
@@ -195,6 +197,42 @@ var exportPostsByEdition = function() {
             }
         });
         saveFile('edition-' + edition.number + '.json', JSON.stringify(editionPosts, null, 4), 'editions')
+    });
+    log('done\n');
+};
+
+var exportPostsByTag = function() {
+    log('exporting tag posts...');
+    var tempName = '';
+    var tagPosts = [];
+    var post = {};
+    tags.forEach(function (tag) {
+        tagPosts = [];
+        tag.postIds.forEach(function(postId){
+            post = _.findWhere(posts, {slug: postId});
+            if (post) { tagPosts.push(post); }
+        });
+        tempName = tag.name.replace(/\s/g, '-');
+        if (!tempName) { return false; }
+        saveFile('tag-' + tempName + '.json', JSON.stringify(tagPosts, null, 4), 'tags')
+    });
+    log('done\n');
+};
+
+var exportPostsByCategory = function() {
+    log('exporting category posts...');
+    var tempName = '';
+    var categoryPosts = [];
+    var post = {};
+    categories.forEach(function (category) {
+        categoryPosts = [];
+        category.postIds.forEach(function(postId){
+            post = _.findWhere(posts, {slug: postId});
+            if (post) { categoryPosts.push(post); }
+        });
+        tempName = category.name.replace(/\s/g, '-');
+        if (!tempName) { return false; }
+        saveFile('category-' + tempName + '.json', JSON.stringify(categoryPosts, null, 4), 'categories')
     });
     log('done\n');
 };
@@ -289,6 +327,8 @@ posts.forEach(function(post){
 log('--------------------------------\n');
 exportPostsPaginated();
 exportPostsByEdition();
+exportPostsByTag();
+exportPostsByCategory();
 saveCollections();
 log('================================\n');
 log('blogination completed!\n');
@@ -297,4 +337,3 @@ log('Now serve your static files by:\n');
 log('cd ./build; http-server --cors -p 8081;\n');
 log('================================\n');
 // ================================
-

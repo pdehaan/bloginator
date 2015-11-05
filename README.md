@@ -101,6 +101,5 @@ Open issues:
     ```
 
     ```shell
-    cd ./build;
-    http-server --cors -p 8081
+    http-server ./build --cors -p 8081
     ```
