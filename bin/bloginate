@@ -71,7 +71,7 @@ var parseFilesInDir = function (dir, filterPattern) {
         slug = titleToUrl(parsedContent.meta.slug);
         post = parsedContent.meta;
         // post.slug = slug;
-        post.tags = _.uniq(parsedContent.meta.tags.split(', '));
+        post.tags = (parsedContent.meta.tags ? _.uniq(parsedContent.meta.tags.split(', ')) : [] );
         post.content = parsedContent.html;
         posts.push(post);
     });
