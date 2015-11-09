@@ -8,16 +8,14 @@ Source in bitbucket:
 Open issues:
 <https://hevnly.atlassian.net/projects/BLOG/issues/?filter=allopenissues>
 
-## How it works
+## How to
 
 1. Write your post in markdown
-
         :::markdown
         # Hey
         *Just a post*
 
 2. Add metadata at the top od the file
-
         :::yaml
         ---
         title:
@@ -33,7 +31,6 @@ Open issues:
         ---
 
 3. Build your blog structure
-
         blog/
           |
            \- source/
@@ -48,13 +45,11 @@ Open issues:
                        \- back-to-the-future.jpg
 
 4. Run bloginator
-
         :::shell
         cd path/to/blog;
         bloginate;
 
 5. Voila!
-
         blog
           |
           | - source
@@ -88,12 +83,9 @@ Open issues:
 6. Serve blog files
 
     Install node http-server
-
         :::shell
         npm install -g http-server
 
-
     Then
-
         :::shell
         http-server --cors -p 8081
