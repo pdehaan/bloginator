@@ -316,8 +316,8 @@ log(coatOfArms + '\n');
 cleanUp();
 setupBuildDir();
 processImages();
-var posts = parseFilesInDir(postsDir, MDRegEx);
-posts.forEach(function(post){
+var postsSourceData = parseFilesInDir(postsDir, MDRegEx);
+postsSourceData.forEach(function(post){
     exportSinglePost(post);
     exportPostTags(post);
     exportPostCategory(post);

@@ -39,7 +39,9 @@
           |
            \- images/
                 |
-                 \- back-to-the-future.jpg
+                 \- 1
+                    |
+                     \- back-to-the-future.jpg
   ```
 
 4. Run bloginator
