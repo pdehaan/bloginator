@@ -188,15 +188,22 @@ var exportPostEdition = function(postData) {
 
 var exportPostsByEdition = function() {
     log('exporting edition posts...');
+    var editionPosts = [];
+    var post = {};
+    var fullEdition = {};
     editions.forEach(function (edition) {
-        var editionPosts = [];
+        editionPosts = [];
         edition.postIds.forEach(function(postId){
-            var post = _.findWhere(posts, {slug: postId});
+            post = _.findWhere(posts, {slug: postId});
             if (post) {
                 editionPosts.push(post);
             }
         });
-        saveFile('edition-' + edition.number + '.json', JSON.stringify(editionPosts, null, 4), 'editions')
+        fullEdition.name = edition.name;
+        fullEdition.number = edition.number;
+        fullEdition.length = edition.postIds.length;
+        fullEdition.posts = editionPosts;
+        saveFile('edition-' + edition.number + '.json', JSON.stringify(fullEdition, null, 4), 'editions')
     });
     log('done\n');
 };
