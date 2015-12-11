@@ -191,7 +191,12 @@ var exportPostsByEdition = function() {
     var editionPosts = [];
     var post = {};
     var fullEdition = {};
+    var count = 0;
+    editions = _.sortBy(editions, function(edition) {
+        return - edition.number;
+    });
     editions.forEach(function (edition) {
+        count ++;
         editionPosts = [];
         edition.postIds.forEach(function(postId){
             post = _.findWhere(posts, {slug: postId});
@@ -199,11 +204,12 @@ var exportPostsByEdition = function() {
                 editionPosts.push(post);
             }
         });
+        fullEdition.id = count;
         fullEdition.name = edition.name;
         fullEdition.number = edition.number;
         fullEdition.length = edition.postIds.length;
         fullEdition.posts = editionPosts;
-        saveFile('edition-' + edition.number + '.json', JSON.stringify(fullEdition, null, 4), 'editions')
+        saveFile('edition-' + count + '.json', JSON.stringify(fullEdition, null, 4), 'editions')
     });
     log('done\n');
 };
