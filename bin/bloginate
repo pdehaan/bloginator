@@ -342,11 +342,22 @@ exportPostsPaginated();
 exportPostsByEdition();
 exportPostsByTag();
 exportPostsByCategory();
+// --
+editions = _.sortBy(editions, function(edition) {
+    return - edition.number;
+});
+var count = 1;
+editions.forEach(function (edition) {
+    edition.id = count;
+    count ++;
+});
+// log(editions);
+// --
 saveCollections();
 log('================================\n');
 log('blogination completed!\n');
 log('================================\n');
 log('Now serve your static files by:\n');
-log('cd ./build; http-server --cors -p 8081;\n');
+log('http-server ./build --cors -p 8081;\n');
 log('================================\n');
 // ================================
