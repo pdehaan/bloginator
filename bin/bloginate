@@ -26,6 +26,13 @@ var IMGRegEx = /\.(gif|jpg|jpeg|png)$/i;
 var coatOfArms = '\n================================\n _   _                  _\n| | | | _____   ___ __ | |_   _\n| |_| |/ _ \\ \\ / / \'_ \\| | | | |\n|  _  |  __/\\ V /| | | | | |_| |\n|_| |_|\\___| \\_/ |_| |_|_|\\__, |\n Bloginator               |___/\n\n================================\n';
 // ================================
 // Globals
+
+// Curly quote chars:
+var singleLeftCurlyQuote  = '\u2018'; // (‘)
+var singleRightCurlyQuote = '\u2019'; // (’)
+var doubleLeftCurlyQuote  = '\u201C'; // (“)
+var doubleRightCurlyQuote = '\u201D'; // (”)
+
 var posts = [];
 var tags = [];
 var categories = [];
@@ -34,6 +41,11 @@ var editions = [];
 // Functions
 var titleToUrl = function(title) {
     return title.toLowerCase().replace(/\s/g, '-');
+};
+
+var curlyQuotesToStraight = function(text) {
+    if (!text) { return ''; }
+    return text.replace(/[\u2018\u2019]/g, "'").replace(/[\u201C\u201D]/g, '"');
 };
 
 var parseContents = function (contents) {
@@ -66,6 +78,8 @@ var parseFilesInDir = function (dir, filterPattern) {
     fileNames.forEach(function(fileName) {
         // read post source
         content = fs.readFileSync(dir + fileName, 'utf-8') || '';
+        // Replace all curly quotes before processing (to avoid bugs)
+        content = curlyQuotesToStraight(content);
         // parse post
         parsedContent = metaMarked(content);
         slug = titleToUrl(parsedContent.meta.slug);
