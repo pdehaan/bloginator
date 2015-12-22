@@ -285,7 +285,8 @@ var processImages = function() {
         }
         // export image no larger than 1600px and .3MB
         gm(sourcePath)
-            .resize('1600', '1024', '>')
+            .resize('1024', '>')
+            .resize('1024', '1600', '>')
             .write(destPath, function (err) {
                 if(err) console.log('image saving error ', err);
             });
