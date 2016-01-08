@@ -223,7 +223,10 @@ var exportPostsByEdition = function() {
         fullEdition.number = edition.number;
         fullEdition.length = edition.postIds.length;
         fullEdition.posts = editionPosts;
-        saveFile('edition-' + count + '.json', JSON.stringify(fullEdition, null, 4), 'editions')
+        saveFile('edition-' + count + '.json', JSON.stringify(fullEdition, null, 4), 'editions');
+        if (count === 1) {
+            saveFile('latest.json', JSON.stringify(fullEdition, null, 4));
+        }
     });
     log('done\n');
 };
