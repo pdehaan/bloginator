@@ -95,17 +95,31 @@ var parseFilesInDir = function (dir, filterPattern) {
 var setPostTimeline = function (postsCollection) {
     var sortedPosts = _.sortBy(postsCollection, function(postItem){ return postItem.date; });
     sortedPosts.forEach(function (post, i) {
-        console.log(i);
-        console.log(i - 1);
         post.previous = false;
         if (i && sortedPosts[(i - 1)]) {
             post.previous = {
-                slug: sortedPosts[(i - 1)].slug,
-                editionName: sortedPosts[(i - 1)].editionName
+                title:         sortedPosts[(i - 1)].title,
+                subTitle:      sortedPosts[(i - 1)].subTitle,
+                readingTime:   sortedPosts[(i - 1)].readingTime,
+                heroImage:     sortedPosts[(i - 1)].heroImage,
+                date:          sortedPosts[(i - 1)].date,
+                slug:          sortedPosts[(i - 1)].slug,
+                tags:          sortedPosts[(i - 1)].tags,
+                category:      sortedPosts[(i - 1)].category,
+                editionName:   sortedPosts[(i - 1)].editionName,
+                editionNumber: sortedPosts[(i - 1)].editionNumber,
             };
             sortedPosts[(i - 1)].next = {
-                slug: post.slug,
-                editionName: post.editionName
+                title:         post.title,
+                subTitle:      post.subTitle,
+                readingTime:   post.readingTime,
+                heroImage:     post.heroImage,
+                date:          post.date,
+                slug:          post.slug,
+                tags:          post.tags,
+                category:      post.category,
+                editionName:   post.editionName,
+                editionNumber: post.editionNumber
             };
         }
     });
