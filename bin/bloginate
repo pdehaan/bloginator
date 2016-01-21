@@ -92,6 +92,26 @@ var parseFilesInDir = function (dir, filterPattern) {
     return posts;
 };
 
+var setPostTimeline = function (postsCollection) {
+    var sortedPosts = _.sortBy(postsCollection, function(postItem){ return postItem.date; });
+    sortedPosts.forEach(function (post, i) {
+        console.log(i);
+        console.log(i - 1);
+        post.previous = false;
+        if (i && sortedPosts[(i - 1)]) {
+            post.previous = {
+                slug: sortedPosts[(i - 1)].slug,
+                editionName: sortedPosts[(i - 1)].editionName
+            };
+            sortedPosts[(i - 1)].next = {
+                slug: post.slug,
+                editionName: post.editionName
+            };
+        }
+    });
+    return sortedPosts;
+};
+
 var deleteFolderRecursive = function(dirPath) {
     if (fs.existsSync(dirPath)) {
         fs.readdirSync(dirPath).forEach(function(file, index) {
@@ -348,6 +368,7 @@ cleanUp();
 setupBuildDir();
 processImages();
 var postsSourceData = parseFilesInDir(postsDir, MDRegEx);
+postsSourceData = setPostTimeline(postsSourceData);
 postsSourceData.forEach(function(post){
     exportSinglePost(post);
     exportPostTags(post);
