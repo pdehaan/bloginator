@@ -37,6 +37,7 @@ var posts = [];
 var tags = [];
 var categories = [];
 var editions = [];
+var links = {};
 // ================================
 // Functions
 var titleToUrl = function(title) {
@@ -312,11 +313,29 @@ var exportPostsPaginated = function() {
     log('done\n');
 };
 
+var exportLinks = function () {
+    links = {
+        categories: { frequency: 'yearly', priority: 0.65, urls: [] },
+        editions:   { frequency: 'monthly', priority: 0.75, urls: [] },
+        posts:      { frequency: 'weekly', priority: 0.55, urls: [] }
+    };
+    editions.forEach(function (edition) {
+        links.editions.urls.push('/' + edition.name + '/');
+    });
+    categories.forEach(function (category) {
+        links.categories.urls.push('/category/' + category.name + '/');
+    });
+    posts.forEach(function (post) {
+        links.posts.urls.push('/' + post.editionName + '/' + post.slug + '/');
+    });
+};
+
 var saveCollections = function() {
     log('saving collections...');
     saveFile('tags.json', JSON.stringify(tags, null, 4));
     saveFile('categories.json', JSON.stringify(categories, null, 4));
     saveFile('editions.json', JSON.stringify(editions, null, 4));
+    saveFile('links.json', JSON.stringify(links, null, 4));
     log('done\n');
 };
 
@@ -391,6 +410,7 @@ postsSourceData.forEach(function(post){
     log('--\n');
 });
 log('--------------------------------\n');
+exportLinks();
 exportPostsPaginated();
 exportPostsByEdition();
 exportPostsByTag();
