@@ -1,0 +1,43 @@
+{
+    "variables": {
+        "deploy_folder": "/etc/hevnly/bloginator"
+    },
+    "builders": [
+        {
+            "type": "docker",
+            "image": "node",
+            "commit": "true",
+            "volumes": {
+                "{{user `source_code_fld`}}": "/bloginator"
+            }
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "shell",
+            "inline": ["apt-get update -qq", "apt-get install -y graphicsmagick"]
+        },
+        {
+            "type": "shell",
+            "inline": ["cd /bloginator", "npm install"]
+        },
+        {
+            "type": "shell",
+            "inline": ["mkdir -p {{user `deploy_folder`}}"]
+        },
+        {
+            "type": "shell",
+            "inline": ["cp -r /bloginator/* {{user `deploy_folder`}}"]
+        }
+    ],
+    "post-processors": [
+        [
+            {
+                "type": "docker-tag",
+                "repository": "{{user `docker_repo_imgName`}}",
+                "tag": "{{user `tag`}}",
+                "force": "true"
+            }
+        ]
+    ]
+}
