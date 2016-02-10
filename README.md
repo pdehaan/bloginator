@@ -94,3 +94,18 @@
     ```sh
     http-server --cors -p 8081
     ```
+
+#### To run packer to build a docker image on Mac.
+
+If you need to run packer to build your docker image on a Mac, type the following commands in your shell:
+
+`mkdir ~/tmp`
+`TMPDIR=~/tmp /usr/local/packer/packer build -var 'source_code_fld=<path-to-bloginator-folder-on-local-machine>' -var 'tag=<set-your-tag>' -var 'docker_repo_imgName=hevnly/bloginator' packerImage.json`
+
+#### Run docker image
+
+`docker run -it <image-name>:<image-tag> bash`
+
+If you need to run it using hhg, you will need to mount a volume containing hhg, like so:
+
+`docker run -it -v <source-path-to-hhg-folder>:<destination-path-you-want-for-hhg-in-container> -w <destination-path-you-want-for-hhg-in-container> <image-name>:<image-tag> bash`
