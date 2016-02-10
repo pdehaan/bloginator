@@ -108,4 +108,4 @@ If you need to run packer to build your docker image on a Mac, type the followin
 
 If you need to run it using hhg, you will need to mount a volume containing hhg, like so:
 
-`docker run -it -v <path-to-hhg-folder>:<path-you-want-for-hhg> -w <path-you-want-for-hhg> <image-name>:<image-tag> bash`
+`docker run -it -v <source-path-to-hhg-folder>:<destination-path-you-want-for-hhg-in-container> -w <destination-path-you-want-for-hhg-in-container> <image-name>:<image-tag> bash`
