@@ -13,13 +13,14 @@
 var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
+var yaml = require('js-yaml');
 var metaMarked = require('meta-marked');
 var gm = require('gm');
 var paginate = require('../lib/paginate');
 // Constants
 var contentDir = './source';
 var postsDir = path.join(contentDir, 'posts/');
-var imageDir = path.join(contentDir, 'images/');
+var editionsMetaFile = path.join(contentDir, 'editions.yml');
 var buildDir = './build/';
 var MDRegEx = /.*\.md$/;
 var IMGRegEx = /\.(gif|jpg|jpeg|png)$/i;
@@ -36,10 +37,23 @@ var doubleRightCurlyQuote = '\u201D'; // (”)
 var posts = [];
 var tags = [];
 var categories = [];
+var editionsMeta = {};
 var editions = [];
 var links = {};
 // ================================
 // Functions
+var parseMeta = function (metaPath) {
+    var metaSource = fs.readFileSync(metaPath, 'utf8');
+    var metaObject = {};
+    try {
+        metaObject = yaml.safeLoad(metaSource);
+    } catch (e) {
+        console.log('Error when tried parsing metadtata:');
+        console.log(e);
+    }
+    return metaObject;
+};
+
 var titleToUrl = function(title) {
     return title.toLowerCase().replace(/\s/g, '-');
 };
@@ -152,7 +166,6 @@ var cleanUp = function() {
 var setupBuildDir = function() {
     log('creating subdirectories...');
     fs.mkdirSync(buildDir);
-    fs.mkdirSync(path.join(buildDir, 'images'));
     ['tags', 'editions', 'categories', 'pages', 'posts'].forEach(function(dirName){
         fs.mkdirSync(path.join(buildDir, dirName));
     });
@@ -338,68 +351,13 @@ var saveCollections = function() {
     saveFile('links.json', JSON.stringify(links, null, 4));
     log('done\n');
 };
-
-var processImages = function() {
-    log('processing images...');
-    var editions = [];
-    var postNames = [];
-    var imageFiles = [];
-    var tmpEditionPath = '';
-    var tmpPostPath = '';
-    var imageSourcePath = '';
-    var imageDestPath = '';
-    var processImage = function(sourcePath, destPath) {
-        if(!sourcePath || !destPath) {
-            console.log('Please set source/destination Path');
-            return false;
-        }
-        // export image no larger than 1600px and .3MB
-        gm(sourcePath)
-            .resize('1024', '>')
-            .resize('1024', '1600', '>')
-            .write(destPath, function (err) {
-                if(err) console.log('image saving error ', err);
-            });
-    };
-    editions = fs.readdirSync(imageDir);
-    editions = editions.filter(function(edition) {
-        return fs.lstatSync(path.join(imageDir, edition)).isDirectory();
-    });
-    // for all editions
-    editions.forEach(function (edition) {
-        tmpEditionPath = path.join(imageDir, edition, '/');
-        fs.mkdirSync(path.join(buildDir, 'images', edition));
-        postNames = fs.readdirSync(tmpEditionPath);
-        postNames = postNames.filter(function (postName) {
-            tmpPostPath = path.join(imageDir, edition, postName);
-            return fs.lstatSync(tmpPostPath).isDirectory();
-        });
-        // for all posts
-        postNames.forEach(function (postName) {
-            tmpPostPath = '';
-            tmpPostPath = path.join(imageDir, edition, postName);
-            fs.mkdirSync(path.join(buildDir, 'images', edition, postName));
-            imageFiles = fs.readdirSync(tmpPostPath);
-            imageFiles = imageFiles.filter(function(imageFile) {
-                return imageFile.match(IMGRegEx);
-            });
-            // for all images
-            imageFiles.forEach(function (imageFile) {
-                imageSourcePath = path.join(tmpPostPath, imageFile);
-                // EXPORT DIR should be "build/images/editionNumber/post-name/"
-                imageDestPath = path.join(buildDir, 'images', edition, postName, imageFile);
-                processImage(imageSourcePath, imageDestPath);
-            });
-        });
-    });
-    log('done\n--\n');
-};
 // ================================
 // executing
 log(coatOfArms + '\n');
 cleanUp();
 setupBuildDir();
-processImages();
+editionsMeta = parseMeta(editionsMetaFile);
+console.log(editionsMeta);
 var postsSourceData = parseFilesInDir(postsDir, MDRegEx);
 postsSourceData = setPostTimeline(postsSourceData);
 postsSourceData.forEach(function(post){
