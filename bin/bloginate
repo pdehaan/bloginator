@@ -99,6 +99,10 @@ var parseFilesInDir = function (dir, filterPattern) {
         parsedContent = metaMarked(content);
         slug = titleToUrl(parsedContent.meta.slug);
         post = parsedContent.meta;
+        // ensure slug does not contain capital letters
+        post.slug = post.slug.toLowerCase();
+        // ensure edition name does not contain capital letters
+        post.editionName = post.editionName.toLowerCase();
         // post.slug = slug;
         post.tags = (parsedContent.meta.tags ? _.uniq(parsedContent.meta.tags.split(', ')) : [] );
         post.content = parsedContent.html;
