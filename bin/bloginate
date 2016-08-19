@@ -350,6 +350,7 @@ var exportLinks = function () {
 
 var saveCollections = function() {
     log('saving collections...');
+    saveFile('posts.json', JSON.stringify(posts, null, 4));
     saveFile('tags.json', JSON.stringify(tags, null, 4));
     saveFile('categories.json', JSON.stringify(categories, null, 4));
     saveFile('editions.json', JSON.stringify(editions, null, 4));
